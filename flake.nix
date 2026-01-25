@@ -29,7 +29,7 @@
           overlays = [zig-overlay.overlays.default];
         };
 
-        zig = pkgs.zigpkgs.master;
+        zig = pkgs.zigpkgs."0.15.2";
 
         ziglint = pkgs.stdenv.mkDerivation {
           pname = "ziglint";
