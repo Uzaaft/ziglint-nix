@@ -33,7 +33,7 @@
 
         ziglint = pkgs.stdenv.mkDerivation {
           pname = "ziglint";
-          version = "0.2.2";
+          version = "0.3.0";
 
           src = ziglint-src;
 
