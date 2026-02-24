@@ -3,81 +3,76 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    flake-utils.url = "github:numtide/flake-utils";
     ziglint-src = {
       url = "github:rockorager/ziglint";
       flake = false;
-    };
-    zig-overlay = {
-      url = "github:mitchellh/zig-overlay";
-      inputs.nixpkgs.follows = "nixpkgs";
     };
   };
 
   outputs = {
     self,
     nixpkgs,
-    flake-utils,
     ziglint-src,
-    zig-overlay,
     ...
-  }:
-    flake-utils.lib.eachDefaultSystem (
-      system: let
-        pkgs = import nixpkgs {
-          inherit system;
-          overlays = [zig-overlay.overlays.default];
+  }: let
+    systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
+    forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f system);
+    pkgsFor = system: import nixpkgs {inherit system;};
+    ziglintFor = system: let
+      pkgs = pkgsFor system;
+    in
+      pkgs.stdenv.mkDerivation {
+        pname = "ziglint";
+        version = "0.3.0";
+
+        src = ziglint-src;
+
+        nativeBuildInputs = [pkgs.zig];
+
+        dontConfigure = true;
+        dontInstall = true;
+
+        buildPhase = ''
+          runHook preBuild
+
+          export XDG_CACHE_HOME=$(mktemp -d)
+          zig build -Doptimize=ReleaseFast --prefix $out
+
+          runHook postBuild
+        '';
+
+        meta = with pkgs.lib; {
+          description = "Opinionated linting to keep your agent in check";
+          homepage = "https://github.com/rockorager/ziglint";
+          license = licenses.mit;
+          maintainers = [];
+          platforms = platforms.unix;
+          mainProgram = "ziglint";
         };
-
-        zig = pkgs.zigpkgs."0.15.2";
-
-        ziglint = pkgs.stdenv.mkDerivation {
-          pname = "ziglint";
-          version = "0.3.0";
-
-          src = ziglint-src;
-
-          nativeBuildInputs = [zig];
-
-          dontConfigure = true;
-          dontInstall = true;
-
-          buildPhase = ''
-            runHook preBuild
-
-            export XDG_CACHE_HOME=$(mktemp -d)
-            zig build -Doptimize=ReleaseFast --prefix $out
-
-            runHook postBuild
-          '';
-
-          meta = with pkgs.lib; {
-            description = "Opinionated linting to keep your agent in check";
-            homepage = "https://github.com/rockorager/ziglint";
-            license = licenses.mit;
-            maintainers = [];
-            platforms = platforms.unix;
-            mainProgram = "ziglint";
-          };
-        };
-      in {
-        packages = {
-          default = ziglint;
-          inherit ziglint;
-        };
-
-        apps.default = flake-utils.lib.mkApp {
-          drv = ziglint;
-        };
-
-        devShells.default = pkgs.mkShell {
-          buildInputs = [ziglint];
-        };
-      }
-    )
-    // {
-      overlays.default = final: prev: {
-        ziglint = self.packages.${prev.system}.ziglint;
       };
+  in {
+    packages = forAllSystems (system: let
+      ziglint = ziglintFor system;
+    in {
+      default = ziglint;
+      inherit ziglint;
+    });
+
+    apps = forAllSystems (system: {
+      default = {
+        type = "app";
+        program = "${ziglintFor system}/bin/ziglint";
+      };
+    });
+
+    devShells = forAllSystems (system: {
+      default = (pkgsFor system).mkShell {
+        buildInputs = [(ziglintFor system)];
+      };
+    });
+
+    overlays.default = final: prev: {
+      ziglint = self.packages.${prev.system}.ziglint;
     };
+  };
 }
