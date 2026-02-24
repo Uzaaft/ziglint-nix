@@ -1,18 +1,11 @@
 {
   description = "Nix flake for ziglint - an opinionated linter for Zig source code";
 
-  inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    ziglint-src = {
-      url = "github:rockorager/ziglint";
-      flake = false;
-    };
-  };
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
 
   outputs = {
     self,
     nixpkgs,
-    ziglint-src,
     ...
   }: let
     systems = ["x86_64-linux" "aarch64-linux" "x86_64-darwin" "aarch64-darwin"];
@@ -25,7 +18,12 @@
         pname = "ziglint";
         version = "0.3.0";
 
-        src = ziglint-src;
+        src = pkgs.fetchFromGitHub {
+          owner = "rockorager";
+          repo = "ziglint";
+          rev = "bfcb30d14d5506940344096e4cf3b0c13b210439";
+          hash = "sha256-kP+1bnp2bkYGcIkJDQLtuh5Q+kSH196Qw9sSYaFvqkI=";
+        };
 
         nativeBuildInputs = [pkgs.zig];
 

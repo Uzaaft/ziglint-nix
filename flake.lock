@@ -18,24 +18,7 @@
     },
     "root": {
       "inputs": {
-        "nixpkgs": "nixpkgs",
-        "ziglint-src": "ziglint-src"
-      }
-    },
-    "ziglint-src": {
-      "flake": false,
-      "locked": {
-        "lastModified": 1771273024,
-        "narHash": "sha256-kP+1bnp2bkYGcIkJDQLtuh5Q+kSH196Qw9sSYaFvqkI=",
-        "owner": "rockorager",
-        "repo": "ziglint",
-        "rev": "bfcb30d14d5506940344096e4cf3b0c13b210439",
-        "type": "github"
-      },
-      "original": {
-        "owner": "rockorager",
-        "repo": "ziglint",
-        "type": "github"
+        "nixpkgs": "nixpkgs"
       }
     }
   },
