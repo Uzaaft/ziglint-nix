@@ -25,7 +25,7 @@
           hash = "sha256-kP+1bnp2bkYGcIkJDQLtuh5Q+kSH196Qw9sSYaFvqkI=";
         };
 
-        nativeBuildInputs = [pkgs.zig];
+        nativeBuildInputs = [pkgs.zig_0_15];
 
         dontConfigure = true;
         dontInstall = true;
